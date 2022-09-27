@@ -1,4 +1,3 @@
-#include <libubox/blobmsg_json.h>
 #include <libubus.h>
 #include <stdio.h>
 #include <syslog.h>

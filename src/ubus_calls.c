@@ -1,58 +1,62 @@
 #include "ubus_calls.h"
 
+int unload_list(response *head,struct ubus_context *ctx,struct ubus_request *req){
+
+    int rc = 0;
+    response *tmp = head;
+    struct blob_buf b ={0};
+    rc = blob_buf_init(&b,0);
+    if(rc != 0){
+        
+        return rc;
+    }
+    void *main_tb =blobmsg_open_table(&b,"clients");
+    while(tmp != NULL){
+        void *client_tb =blobmsg_open_table(&b,NULL);
+        blobmsg_add_string(&b,"client_name",tmp->common_name);
+        if(rc != 0){
+            return rc;
+        }
+        blobmsg_add_string(&b,"real_address",tmp->real_address);
+        if(rc != 0){
+            return rc;
+        }
+        blobmsg_add_string(&b,"bytes_recieved",tmp->bytes_rec);     
+        if(rc != 0){
+            return rc;
+        }
+        blobmsg_add_string(&b,"bytes_sent",tmp->bytes_sent); 
+        if(rc != 0){
+        return rc;
+        }
+        blobmsg_add_string(&b,"connected_since",tmp->connected_since);
+        if(rc != 0){
+            return rc;
+        }
+        blobmsg_close_table(&b,client_tb);
+        tmp = tmp->next;
+    }
+    blobmsg_close_table(&b,main_tb); 
+    ubus_send_reply(ctx,req,b.head);
+    blob_buf_free(&b);
+}
 
 int client_get(struct ubus_context *ctx, struct ubus_object *obj,
 		      struct ubus_request_data *req, const char *method,
 		      struct blob_attr *msg){
 
-    // int rc =0;
-    // struct blob_buf blob_buf = {};
-    // rc =blob_buf_init(&blob_buf,0);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // rc =blobmsg_add_string(&blob_buf,"server name",name);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // rc =blobmsg_add_u16(&blob_buf,"server id",id);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // rc =blobmsg_add_u64(&blob_buf,"data sent",sent);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // rc =blobmsg_add_u64(&blob_buf,"data recieved",recieved);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // rc =ubus_send_reply(ctx,req,blob_buf.head);
-    // if(rc != 0){
-    //     syslog(LOG_ERR,"%s, err: %d",ubus_strerror(rc),rc);
-    //     return rc;
-    // }
-    // blob_buf_free(&blob_buf);
-    parser *parse =NULL;
-    parse =parser_init();
-    puts("Here");
-    char *ret =msg_to_server(SERVER_STATUS);
-        puts("Here");
-    string_parse_from_to(parse,ret,"Common Name","ROUTING","\n",",");
-        puts("Here");
-    free(ret);
-        puts("Here");
-    print_parser(parse);
-        puts("Here");
-    parser_destroy(parse);
-        puts("Here");
+    int rc =0;
+    response *head = NULL;
+    char *resp = msg_to_server(SERVER_STATUS);
+    create_list(&head,resp,"\n",",","ROUTING","Common Name");
+    head =remove_top(head);
+    print_list(head);
+    unload_list(head,ctx,req);
+    free(resp);
+    delete_list(head);
     return 0;
 }
+
 struct ubus_context *start_ubus_loop(){
 
     struct ubus_context *ctx =NULL;
@@ -87,14 +91,21 @@ int kill_client(struct ubus_context *ctx, struct ubus_object *obj,
 
     struct blob_attr *tb[__MAX];
     struct blob_buf blob_buff ={};
+    char msg[32];
     blobmsg_parse(kill_policy,__MAX,tb,blob_data(msg),blob_len(msg));
     printf("got kill request\n");
     if (!tb[CLIENT_NAME]){
         printf("%s, err %d",ubus_strerror(UBUS_STATUS_INVALID_ARGUMENT),UBUS_STATUS_INVALID_ARGUMENT);
         return UBUS_STATUS_INVALID_ARGUMENT;
     }
-
+    
     char *client = blobmsg_get_string(tb[CLIENT_NAME]);
+    sprintf(msg,"kill %s\n",client);
+    char *ret = msg_to_server(msg);
+    if(strncmp(ret,"SUCCESS",8) != 0){
+        //syslog
+    }
+    // SUCCESS: common name 'pc_3' found, 1 client(s) killed
     printf("kill client with name: %s\n",client);
 
     blob_buf_free(&blob_buff);

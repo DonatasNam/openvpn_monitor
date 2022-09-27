@@ -6,7 +6,7 @@ LDFLAGS:= -lubus -lubox -lblobmsg_json
 all: openvpn_monitor
 
 openvpn_monitor: $(SRC)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -g -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -rf openvpn_monitor
