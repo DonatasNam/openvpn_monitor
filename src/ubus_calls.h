@@ -20,7 +20,7 @@ int kill_client(struct ubus_context *ctx, struct ubus_object *obj,struct ubus_re
 
 static const struct blobmsg_policy kill_policy[] = {
 
-    [CLIENT_NAME] ={.name = "Server_name", .type = BLOBMSG_TYPE_STRING},
+    [CLIENT_NAME] ={.name = "client_name", .type = BLOBMSG_TYPE_STRING},
 };
 
 static const struct ubus_method monitor_methods[] ={

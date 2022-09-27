@@ -91,24 +91,21 @@ int kill_client(struct ubus_context *ctx, struct ubus_object *obj,
 
     struct blob_attr *tb[__MAX];
     struct blob_buf blob_buff ={};
-    char msg[32];
+    char message[32];
     blobmsg_parse(kill_policy,__MAX,tb,blob_data(msg),blob_len(msg));
-    printf("got kill request\n");
     if (!tb[CLIENT_NAME]){
         printf("%s, err %d",ubus_strerror(UBUS_STATUS_INVALID_ARGUMENT),UBUS_STATUS_INVALID_ARGUMENT);
         return UBUS_STATUS_INVALID_ARGUMENT;
     }
     
     char *client = blobmsg_get_string(tb[CLIENT_NAME]);
-    sprintf(msg,"kill %s\n",client);
-    char *ret = msg_to_server(msg);
-    if(strncmp(ret,"SUCCESS",8) != 0){
-        //syslog
-    }
-    // SUCCESS: common name 'pc_3' found, 1 client(s) killed
-    printf("kill client with name: %s\n",client);
+    puts(client);
+    sprintf(message,"kill %s\n",client);
+    char *ret = msg_to_server(message);
+    if(strstr(ret,"SUCCESS") == NULL){
 
+    }
+    free(ret);
     blob_buf_free(&blob_buff);
-    
     return 0;
 }
