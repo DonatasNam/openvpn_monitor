@@ -48,6 +48,9 @@ int client_get(struct ubus_context *ctx, struct ubus_object *obj,
     int rc =0;
     response *head = NULL;
     char *resp = msg_to_server(SERVER_STATUS);
+    if(strstr(resp,"CLIENT LIST")==NULL){
+        return -1;
+    }
     create_list(&head,resp,"\n",",","ROUTING","Common Name");
     head =remove_top(head);
     print_list(head);
@@ -57,10 +60,11 @@ int client_get(struct ubus_context *ctx, struct ubus_object *obj,
     return 0;
 }
 
-struct ubus_context *start_ubus_loop(){
+struct ubus_context *start_ubus_loop(char *name){
 
     struct ubus_context *ctx =NULL;
     int rc = 0;
+    monitor_object.name = name;
     rc = uloop_init();
     if (rc != UBUS_STATUS_OK){
         syslog(LOG_ERR,"%s err: %d",ubus_strerror(rc),rc);
@@ -97,14 +101,12 @@ int kill_client(struct ubus_context *ctx, struct ubus_object *obj,
         printf("%s, err %d",ubus_strerror(UBUS_STATUS_INVALID_ARGUMENT),UBUS_STATUS_INVALID_ARGUMENT);
         return UBUS_STATUS_INVALID_ARGUMENT;
     }
-    
     char *client = blobmsg_get_string(tb[CLIENT_NAME]);
-    puts(client);
     sprintf(message,"kill %s\n",client);
     char *ret = msg_to_server(message);
     if(strstr(ret,"SUCCESS") == NULL){
-
-    }
+        syslog(LOG_ERR,"%s",msg);
+    }   
     free(ret);
     blob_buf_free(&blob_buff);
     return 0;

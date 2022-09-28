@@ -1,5 +1,5 @@
 SRC:= monitor_main.c parser.c server_ctrl.c ubus_calls.c
-LDFLAGS:= -lubus -lubox -lblobmsg_json
+LDFLAGS:= -lubus -lubox -lblobmsg_json -largp
 
 .PHONY: all clean
 

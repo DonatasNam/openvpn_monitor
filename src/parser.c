@@ -32,7 +32,7 @@ static response *create_node(char *client_string,char *delimeter){
     if(!token){
         return NULL;
     }
-    strncpy(node->connected_since, token,strlen(token));
+    strncpy(node->connected_since, token,20);
     node->next = NULL;
     return node;
 }
